@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Личный кабинет - Finalis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/profile.css">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Личный кабинет</h1>
+            <p class="hero-subtitle">Управление вашими данными и заказами</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="profile-layout">
+            <!-- Боковое меню -->
+            <aside class="profile-sidebar">
+                <div class="user-card">
+                    <div class="user-avatar">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <h3>{{ user.get_full_name|default:user.username }}</h3>
+                        <p class="user-email">{{ user.email }}</p>
+                        <span class="user-badge">Покупатель</span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a href="#profile" class="nav-item active" data-tab="profile">
+                        <i class="bi bi-person"></i>
+                        Профиль
+                    </a>
+                    <a href="#orders" class="nav-item" data-tab="orders">
+                        <i class="bi bi-bag"></i>
+                        Мои заказы
+                        <span class="nav-badge">{{ orders_count }}</span>
+                    </a>
+                    <a href="#favorites" class="nav-item" data-tab="favorites">
+                        <i class="bi bi-heart"></i>
+                        Избранное
+                        <span class="nav-badge">{{ favorites_count }}</span>
+                    </a>
+                    <a href="#reviews" class="nav-item" data-tab="reviews">
+                        <i class="bi bi-chat"></i>
+                        Мои отзывы
+                        <span class="nav-badge">{{ reviews_count }}</span>
+                    </a>
+                    <a href="#security" class="nav-item" data-tab="security">
+                        <i class="bi bi-shield"></i>
+                        Безопасность
+                    </a>
+                    {% if user.supplier_profile %}
+                    <a href="{% url 'supplier_dashboard' %}" class="nav-item supplier-link">
+                        <i class="bi bi-shop"></i>
+                        Кабинет поставщика
+                    </a>
+                    {% else %}
+                    <a href="{% url 'become_supplier' %}" class="nav-item supplier-link">
+                        <i class="bi bi-plus-circle"></i>
+                        Стать поставщиком
+                    </a>
+                    {% endif %}
+                </nav>
+            </aside>
+
+            <!-- Основной контент -->
+            <main class="profile-content">
+                <!-- Вкладка профиля -->
+                <div class="tab-content active" id="profile-tab">
+                    <div class="tab-header">
+                        <h2>Личные данные</h2>
+                        <button class="btn-secondary edit-btn" id="editProfileBtn">
+                            <i class="bi bi-pencil"></i>
+                            Редактировать
+                        </button>
+                    </div>
+
+                    <div class="profile-info">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Имя пользователя</label>
+                                <p>{{ user.username }}</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Email</label>
+                                <p>{{ user.email }}</p>
+                                {% if user.email_verified %}
+                                    <span class="verified-badge">Подтвержден</span>
+                                {% else %}
+                                    <span class="unverified-badge">Не подтвержден</span>
+                                {% endif %}
+                            </div>
+                            <div class="info-item">
+                                <label>Телефон</label>
+                                <p>{{ user.phone|default:"Не указан" }}</p>
+                                {% if user.phone_verified %}
+                                    <span class="verified-badge">Подтвержден</span>
+                                {% elif user.phone %}
+                                    <span class="unverified-badge">Не подтвержден</span>
+                                {% endif %}
+                            </div>
+                            <div class="info-item">
+                                <label>Полное имя</label>
+                                <p>{{ user.get_full_name|default:"Не указано" }}</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Дата регистрации</label>
+                                <p>{{ user.date_joined|date:"d.m.Y" }}</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Предпочтительный город</label>
+                                <p>{{ user.profile.preferred_city.name|default:"Не указан" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Форма редактирования (скрыта по умолчанию) -->
+                    <form class="edit-form" id="editProfileForm" style="display: none;">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="id_first_name">Имя</label>
+                                <input type="text" id="id_first_name" name="first_name" 
+                                       value="{{ user.first_name }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="id_last_name">Фамилия</label>
+                                <input type="text" id="id_last_name" name="last_name" 
+                                       value="{{ user.last_name }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="id_phone">Телефон</label>
+                                <input type="tel" id="id_phone" name="phone" 
+                                       value="{{ user.phone }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="id_city">Город</label>
+                                <select id="id_city" name="city" class="form-select">
+                                    <option value="">Выберите город</option>
+                                    {% for city in cities %}
+                                        <option value="{{ city.id }}" 
+                                                {% if user.profile.preferred_city.id == city.id %}selected{% endif %}>
+                                            {{ city.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary cancel-btn">Отмена</button>
+                            <button type="submit" class="btn-primary">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Вкладка заказов -->
+                <div class="tab-content" id="orders-tab">
+                    <div class="tab-header">
+                        <h2>История заказов</h2>
+                    </div>
+
+                    {% if orders %}
+                    <div class="orders-list">
+                        {% for order in orders %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <h3>Заказ #{{ order.id }}</h3>
+                                    <span class="order-date">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                <div class="order-status">
+                                    <span class="status-badge status-{{ order.status }}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="order-details">
+                                <div class="order-supplier">
+                                    <i class="bi bi-shop"></i>
+                                    {{ order.supplier.company_name }}
+                                </div>
+                                <div class="order-items">
+                                    {% for item in order.items.all %}
+                                    <div class="order-item">
+                                        <span class="item-name">{{ item.product.name }}</span>
+                                        <span class="item-quantity">×{{ item.quantity }}</span>
+                                        <span class="item-price">{{ item.price }} ₽</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="order-footer">
+                                <div class="order-total">
+                                    Итого: <strong>{{ order.total_amount }} ₽</strong>
+                                </div>
+                                <div class="order-actions">
+                                    <a href="{% url 'order_detail' order.id %}" class="btn-secondary">
+                                        <i class="bi bi-eye"></i>
+                                        Подробнее
+                                    </a>
+                                    {% if order.status == 'delivered' %}
+                                    <button class="btn-primary review-btn" data-order-id="{{ order.id }}">
+                                        <i class="bi bi-chat"></i>
+                                        Оставить отзыв
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-bag"></i>
+                        <h3>Заказов пока нет</h3>
+                        <p>Сделайте свой первый заказ в нашем каталоге</p>
+                        <a href="{% url 'catalog' %}" class="btn-primary">
+                            Перейти в каталог
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Вкладка избранного -->
+                <div class="tab-content" id="favorites-tab">
+                    <div class="tab-header">
+                        <h2>Избранные товары</h2>
+                        <a href="{% url 'favorites' %}" class="btn-secondary">
+                            <i class="bi bi-arrow-right"></i>
+                            Все избранное
+                        </a>
+                    </div>
+
+                    {% if favorites %}
+                    <div class="favorites-preview">
+                        {% for favorite in favorites|slice:":4" %}
+                        <div class="favorite-item">
+                            <div class="product-image">
+                                {% if favorite.product.images.first %}
+                                    <img src="{{ favorite.product.images.first.image.url }}" alt="{{ favorite.product.name }}">
+                                {% else %}
+                                    <div class="no-image">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="product-info">
+                                <h4>{{ favorite.product.name }}</h4>
+                                <p class="product-price">{{ favorite.product.final_price }} ₽</p>
+                                <button class="remove-favorite" data-product-id="{{ favorite.product.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if favorites.count > 4 %}
+                    <div class="view-all">
+                        <a href="{% url 'favorites' %}" class="btn-secondary">
+                            Показать все {{ favorites.count }} товаров
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-heart"></i>
+                        <h3>В избранном пока ничего нет</h3>
+                        <p>Добавляйте товары в избранное, чтобы не потерять</p>
+                        <a href="{% url 'catalog' %}" class="btn-primary">
+                            Перейти в каталог
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Вкладка отзывов -->
+                <div class="tab-content" id="reviews-tab">
+                    <div class="tab-header">
+                        <h2>Мои отзывы</h2>
+                    </div>
+
+                    {% if reviews %}
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="product-info">
+                                    <h4>{{ review.product.name }}</h4>
+                                    <div class="rating-stars">
+                                        {% for i in "12345" %}
+                                            <i class="bi bi-star{% if forloop.counter <= review.rating %}-fill{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <span class="review-date">{{ review.created_at|date:"d.m.Y" }}</span>
+                            </div>
+                            
+                            <h5 class="review-title">{{ review.title }}</h5>
+                            <p class="review-text">{{ review.text }}</p>
+                            
+                            {% if review.images.all %}
+                            <div class="review-images">
+                                {% for image in review.images.all %}
+                                <img src="{{ image.image.url }}" alt="Фото отзыва">
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="review-actions">
+                                <button class="btn-secondary edit-review" data-review-id="{{ review.id }}">
+                                    <i class="bi bi-pencil"></i>
+                                    Редактировать
+                                </button>
+                                <button class="btn-secondary delete-review" data-review-id="{{ review.id }}">
+                                    <i class="bi bi-trash"></i>
+                                    Удалить
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-chat"></i>
+                        <h3>Отзывов пока нет</h3>
+                        <p>Оставьте отзыв о купленном товаре</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Вкладка безопасности -->
+                <div class="tab-content" id="security-tab">
+                    <div class="tab-header">
+                        <h2>Безопасность</h2>
+                    </div>
+
+                    <div class="security-settings">
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Смена пароля</h4>
+                                <p>Обновите ваш пароль для защиты аккаунта</p>
+                            </div>
+                            <button class="btn-primary" id="changePasswordBtn">
+                                Сменить пароль
+                            </button>
+                        </div>
+
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Двухфакторная аутентификация</h4>
+                                <p>Дополнительная защита вашего аккаунта</p>
+                            </div>
+                            <button class="btn-secondary">
+                                Включить
+                            </button>
+                        </div>
+
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Активные сессии</h4>
+                                <p>Управление устройствами, с которых выполнен вход</p>
+                            </div>
+                            <button class="btn-secondary">
+                                Просмотреть
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Форма смены пароля -->
+                    <form class="password-form" id="changePasswordForm" style="display: none;">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_old_password">Текущий пароль</label>
+                            <input type="password" id="id_old_password" name="old_password" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_new_password1">Новый пароль</label>
+                            <input type="password" id="id_new_password1" name="new_password1" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_new_password2">Подтвердите новый пароль</label>
+                            <input type="password" id="id_new_password2" name="new_password2" class="form-input" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary cancel-password">Отмена</button>
+                            <button type="submit" class="btn-primary">Сохранить пароль</button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/profile.js"></script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Корзина - Finalis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/cart.css">
+{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Корзина</h1>
+            <p class="hero-subtitle">Оформление заказа</p>
+        </div>
+    </section>
+
+    {% if cart_items %}
+    <div class="cart-content">
+        <div class="container">
+            <div class="cart-layout">
+                <!-- Список товаров -->
+                <div class="cart-items">
+                    <div class="cart-header">
+                        <h2>Товары в корзине</h2>
+                        <span class="items-count">{{ cart_items|length }} товар(ов)</span>
+                    </div>
+
+                    {% for item in cart_items %}
+                    <div class="cart-item" data-item-id="{{ item.id }}">
+                        <div class="item-image">
+                            {% if item.product.images.first %}
+                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <div class="no-image">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="item-details">
+                            <h3 class="item-title">{{ item.product.name }}</h3>
+                            <p class="item-supplier">
+                                <i class="bi bi-building"></i>
+                                {{ item.product.supplier.company_name }}
+                            </p>
+                            <div class="item-specs">
+                                <span class="spec-badge">{{ item.product.get_material_display }}</span>
+                                <span class="spec-badge">{{ item.product.height }}×{{ item.product.width }} см</span>
+                            </div>
+                        </div>
+
+                        <div class="item-controls">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn minus" data-action="decrease">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="10" readonly>
+                                <button class="quantity-btn plus" data-action="increase">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+
+                            <div class="item-price">
+                                <span class="price">{{ item.product.final_price }} ₽</span>
+                                <span class="total">× {{ item.quantity }} = {{ item.total_price }} ₽</span>
+                            </div>
+
+                            <button class="remove-item" data-item-id="{{ item.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Боковая панель заказа -->
+                <div class="order-summary">
+                    <div class="summary-card">
+                        <h3>Итого</h3>
+
+                        <div class="summary-row">
+                            <span>Товары ({{ total_quantity }})</span>
+                            <span>{{ total_price }} ₽</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Доставка</span>
+                            <span class="delivery-info">
+                                {% if delivery_price == 0 %}
+                                    Бесплатно
+                                {% else %}
+                                    {{ delivery_price }} ₽
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row total">
+                            <span>К оплате</span>
+                            <span class="final-price">{{ final_price }} ₽</span>
+                        </div>
+
+                        <button class="checkout-btn" id="checkoutBtn">
+                            <i class="bi bi-lock-fill"></i>
+                            Перейти к оформлению
+                        </button>
+
+                        <div class="security-notice">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Безопасная оплата через ЮKassa</span>
+                        </div>
+                    </div>
+
+                    <!-- Информация о доставке -->
+                    <div class="delivery-info-card">
+                        <h4><i class="bi bi-truck"></i> Доставка</h4>
+                        <p>Бесплатная доставка в пределах 50 км от поставщика. Срок изготовления: 14-30 дней.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Пустая корзина -->
+    <div class="empty-cart">
+        <div class="container">
+            <div class="empty-state">
+                <i class="bi bi-cart-x"></i>
+                <h2>Корзина пуста</h2>
+                <p>Добавьте товары из каталога, чтобы сделать заказ</p>
+                <a href="{% url 'catalog' %}" class="btn-primary">
+                    <i class="bi bi-grid"></i>
+                    Перейти в каталог
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/cart.js"></script>
+{% endblock %}

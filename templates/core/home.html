@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Finalis - Маркетплейс памятников{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Найдите идеальный памятник</h1>
+        <p class="hero-subtitle">Более 1000 моделей от проверенных поставщиков в вашем городе</p>
+    </div>
+</section>
+
+<!-- Поиск -->
+<section class="search-section">
+    <div class="container">
+        <form class="search-form" action="{% url 'catalog' %}" method="get">
+            <input type="text" name="search" class="search-input" placeholder="Поиск памятников, материалов, форм...">
+            <button type="submit" class="search-button">
+                <i class="bi bi-search"></i>
+                Найти
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Баннеры -->
+<section class="banners">
+    <div class="banner">
+        <div class="banner-icon">
+            <i class="bi bi-truck"></i>
+        </div>
+        <div class="banner-title">Бесплатная доставка</div>
+        <div class="banner-desc">В пределах 50 км от поставщика</div>
+    </div>
+    <div class="banner">
+        <div class="banner-icon">
+            <i class="bi bi-shield-check"></i>
+        </div>
+        <div class="banner-title">Гарантия качества</div>
+        <div class="banner-desc">Все поставщики проверены</div>
+    </div>
+    <div class="banner">
+        <div class="banner-icon">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="banner-title">Лучшие цены</div>
+        <div class="banner-desc">Напрямую от производителей</div>
+    </div>
+</section>
+
+<!-- Популярные категории -->
+<section class="advantages">
+    <h2>Популярные категории</h2>
+    <div class="advantages-grid">
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-square"></i>
+            </div>
+            <div class="advantage-title">Гранитные</div>
+            <div class="advantage-desc">Прочные и долговечные памятники из натурального гранита</div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-circle"></i>
+            </div>
+            <div class="advantage-title">Мраморные</div>
+            <div class="advantage-desc">Элегантные памятники с уникальной текстурой мрамора</div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-triangle"></i>
+            </div>
+            <div class="advantage-title">Вертикальные</div>
+            <div class="advantage-desc">Классические вертикальные памятники различных размеров</div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-plus-square"></i>
+            </div>
+            <div class="advantage-title">Горизонтальные</div>
+            <div class="advantage-desc">Современные горизонтальные модели памятников</div>
+        </div>
+    </div>
+</section>
+
+<!-- Преимущества -->
+<section class="advantages">
+    <h2>Почему выбирают Finalis</h2>
+    <div class="advantages-grid">
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="advantage-title">Локальные поставщики</div>
+            <div class="advantage-desc">Найдите производителей в вашем городе с минимальной доставкой</div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-eye"></i>
+            </div>
+            <div class="advantage-title">Прозрачные цены</div>
+            <div class="advantage-desc">Все цены указаны напрямую от поставщиков без наценок</div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-star"></i>
+            </div>
+            <div class="advantage-title">Отзывы и рейтинги</div>
+            <div class="advantage-desc">Реальные отзывы от покупателей и рейтинги поставщиков</div>
+        </div>
+        <div class="advantage-item">
+            <div class="advantage-icon">
+                <i class="bi bi-chat-dots"></i>
+            </div>
+            <div class="advantage-title">Поддержка 24/7</div>
+            <div class="advantage-desc">Помощь в выборе и консультации от наших специалистов</div>
+        </div>
+    </div>
+</section>
+{% endblock %}

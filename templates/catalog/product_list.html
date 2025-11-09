@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Каталог памятников - Finalis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/catalog.css">
+{% endblock %}
+
+{% block content %}
+<div class="catalog-page">
+    <!-- Hero Section для каталога -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Каталог памятников</h1>
+            <p class="hero-subtitle">Найдите идеальный памятник среди тысяч вариантов</p>
+        </div>
+    </section>
+
+    <!-- Панель инструментов -->
+    <div class="toolbar">
+        <div class="results-count">
+            Найдено товаров: <strong>{{ products|length }}</strong>
+        </div>
+        <div class="sort-filter-controls">
+            <select class="sort-select" id="sortSelect">
+                <option value="-created_at">По новизне</option>
+                <option value="price">По цене (возр.)</option>
+                <option value="-price">По цене (убыв.)</option>
+                <option value="-rating">По рейтингу</option>
+                <option value="-total_orders">По популярности</option>
+            </select>
+            <button class="toggle-filters" id="toggleFilters">
+                <i class="bi bi-funnel"></i>
+                Фильтры
+            </button>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters-container" id="filtersContainer">
+        <div class="filters">
+            <div class="filters-header">
+                <h3>Фильтры</h3>
+                <button class="close-filters" id="closeFilters">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form id="filterForm" method="get">
+                <!-- Город -->
+                <div class="filter-group">
+                    <h3><i class="bi bi-geo-alt"></i>Город</h3>
+                    <select name="city" class="filter-select">
+                        <option value="">Все города</option>
+                        {% for city in cities %}
+                            <option value="{{ city.id }}" {% if selected_city == city.id %}selected{% endif %}>
+                                {{ city.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Материал -->
+                <div class="filter-group">
+                    <h3><i class="bi bi-gem"></i>Материал</h3>
+                    <div class="filter-options">
+                        {% for material_value, material_name in material_choices %}
+                            <label class="filter-checkbox">
+                                <input type="checkbox" name="material" value="{{ material_value }}"
+                                       {% if material_value in selected_materials %}checked{% endif %}>
+                                {{ material_name }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Форма -->
+                <div class="filter-group">
+                    <h3><i class="bi bi-shapes"></i>Форма</h3>
+                    <div class="filter-options">
+                        {% for shape_value, shape_name in shape_choices %}
+                            <label class="filter-checkbox">
+                                <input type="checkbox" name="shape" value="{{ shape_value }}"
+                                       {% if shape_value in selected_shapes %}checked{% endif %}>
+                                {{ shape_name }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Высота -->
+                <div class="filter-group">
+                    <h3><i class="bi bi-arrows-expand-vertical"></i>Высота (см)</h3>
+                    <div class="price-range">
+                        <input type="number" name="min_height" placeholder="От"
+                               value="{{ request.GET.min_height }}" min="0">
+                        <input type="number" name="max_height" placeholder="До"
+                               value="{{ request.GET.max_height }}" min="0">
+                    </div>
+                </div>
+
+                <!-- Цена -->
+                <div class="filter-group">
+                    <h3><i class="bi bi-currency-dollar"></i>Цена (₽)</h3>
+                    <div class="price-range">
+                        <input type="number" name="min_price" placeholder="От"
+                               value="{{ request.GET.min_price }}" min="0">
+                        <input type="number" name="max_price" placeholder="До"
+                               value="{{ request.GET.max_price }}" min="0">
+                    </div>
+                </div>
+
+                <button type="submit" class="apply-filters">
+                    <i class="bi bi-check-lg"></i>
+                    Применить фильтры
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Сетка товаров -->
+    <section class="catalog">
+        {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <i class="bi bi-image" style="font-size: 2rem;"></i>
+                        <span>Нет изображения</span>
+                    {% endif %}
+                    <button class="btn-secondary favorite-btn" data-product-id="{{ product.id }}">
+                        <i class="bi {% if product.id in favorite_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                    </button>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <p class="product-supplier">
+                        <i class="bi bi-building"></i>
+                        {{ product.supplier.company_name }}
+                    </p>
+                    <p class="product-location">
+                        <i class="bi bi-geo-alt"></i>
+                        {{ product.supplier.cities.first.name }}
+                    </p>
+
+                    <div class="product-specs" style="margin-bottom: 0.5rem;">
+                        <span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px;">
+                            {{ product.get_material_display }}
+                        </span>
+                        <span style="background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">
+                            {{ product.height }}×{{ product.width }} см
+                        </span>
+                    </div>
+
+                    <div class="product-price">
+                        {% if product.discount_price %}
+                            <span style="text-decoration: line-through; color: #7f8c8d; font-size: 0.9rem; margin-right: 8px;">
+                                {{ product.price }} ₽
+                            </span>
+                            <span style="color: #e74c3c; font-weight: bold;">
+                                {{ product.discount_price }} ₽
+                            </span>
+                        {% else %}
+                            <span style="font-weight: bold;">{{ product.price }} ₽</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="product-rating" style="display: flex; align-items: center; gap: 5px; margin-bottom: 0.8rem;">
+                        <i class="bi bi-star-fill" style="color: #ffc107;"></i>
+                        <span style="font-size: 0.8rem;">{{ product.rating|default:"0.0" }}</span>
+                        <span style="color: #7f8c8d; font-size: 0.7rem;">({{ product.reviews.count }})</span>
+                    </div>
+
+                    <div class="product-actions">
+                        <button class="btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
+                            <i class="bi bi-cart-plus"></i>
+                            В корзину
+                        </button>
+                        <a href="{% url 'product_detail' product.id %}" class="btn-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="no-products" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                <i class="bi bi-search" style="font-size: 3rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
+                <h3 style="color: #7f8c8d; margin-bottom: 1rem;">Товары не найдены</h3>
+                <p style="color: #95a5a6;">Попробуйте изменить параметры фильтрации или поисковый запрос</p>
+                <button onclick="window.location.href='{% url 'catalog' %}'"
+                        class="btn-primary" style="margin-top: 1rem;">
+                    Сбросить фильтры
+                </button>
+            </div>
+        {% endfor %}
+    </section>
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+        <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin: 2rem 0;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                   class="btn-secondary">
+                    <i class="bi bi-chevron-left"></i>
+                    Назад
+                </a>
+            {% endif %}
+
+            <span style="color: #7f8c8d; font-size: 0.9rem;">
+                Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                   class="btn-secondary">
+                    Вперед
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/catalog.js"></script>
+{% endblock %}

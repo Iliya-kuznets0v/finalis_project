@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Избранное - Finalis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/favorites.css">
+{% endblock %}
+
+{% block content %}
+<div class="favorites-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Избранное</h1>
+            <p class="hero-subtitle">Сохраненные товары</p>
+        </div>
+    </section>
+
+    {% if favorites %}
+    <div class="container">
+        <div class="favorites-header">
+            <h2>Сохраненные товары</h2>
+            <span class="favorites-count">{{ favorites|length }} товар(ов)</span>
+        </div>
+
+        <div class="favorites-grid">
+            {% for favorite in favorites %}
+            <div class="favorite-item" data-product-id="{{ favorite.product.id }}">
+                <div class="product-card">
+                    <div class="product-image">
+                        {% if favorite.product.images.first %}
+                            <img src="{{ favorite.product.images.first.image.url }}" alt="{{ favorite.product.name }}">
+                        {% else %}
+                            <div class="no-image">
+                                <i class="bi bi-image"></i>
+                            </div>
+                        {% endif %}
+                        <button class="remove-favorite" data-product-id="{{ favorite.product.id }}">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="product-info">
+                        <h3 class="product-title">{{ favorite.product.name }}</h3>
+                        <p class="product-supplier">
+                            <i class="bi bi-building"></i>
+                            {{ favorite.product.supplier.company_name }}
+                        </p>
+                        <p class="product-location">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ favorite.product.supplier.cities.first.name }}
+                        </p>
+                        
+                        <div class="product-specs">
+                            <span class="spec-badge">{{ favorite.product.get_material_display }}</span>
+                            <span class="spec-badge">{{ favorite.product.height }}×{{ favorite.product.width }} см</span>
+                        </div>
+                        
+                        <div class="product-price">
+                            {% if favorite.product.discount_price %}
+                                <span class="old-price">{{ favorite.product.price }} ₽</span>
+                                <span class="current-price">{{ favorite.product.discount_price }} ₽</span>
+                            {% else %}
+                                <span class="current-price">{{ favorite.product.price }} ₽</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="product-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <span>{{ favorite.product.rating|default:"0.0" }}</span>
+                            <span class="reviews-count">({{ favorite.product.reviews.count }})</span>
+                        </div>
+                        
+                        <div class="product-actions">
+                            <button class="btn-primary add-to-cart-btn" data-product-id="{{ favorite.product.id }}">
+                                <i class="bi bi-cart-plus"></i>
+                                В корзину
+                            </button>
+                            <a href="{% url 'product_detail' favorite.product.id %}" class="btn-secondary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Групповые действия -->
+        <div class="bulk-actions">
+            <button class="btn-secondary" id="addAllToCart">
+                <i class="bi bi-cart-plus"></i>
+                Добавить все в корзину
+            </button>
+            <button class="btn-secondary" id="clearFavorites">
+                <i class="bi bi-trash"></i>
+                Очистить избранное
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <!-- Пустое избранное -->
+    <div class="empty-favorites">
+        <div class="container">
+            <div class="empty-state">
+                <i class="bi bi-heart"></i>
+                <h2>В избранном пока ничего нет</h2>
+                <p>Добавляйте товары в избранное, чтобы не потерять</p>
+                <a href="{% url 'catalog' %}" class="btn-primary">
+                    <i class="bi bi-grid"></i>
+                    Перейти в каталог
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/favorites.js"></script>
+{% endblock %}

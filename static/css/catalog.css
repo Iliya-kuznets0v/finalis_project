@@ -1,0 +1,63 @@
+/* Дополнительные стили для каталога */
+.catalog-page {
+    padding-bottom: 2rem;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 0;
+    font-size: 0.8rem;
+    gap: 6px;
+}
+
+.filter-checkbox input[type="checkbox"] {
+    margin: 0;
+}
+
+.product-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.no-products {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 2rem 0;
+}
+
+/* Адаптивность для каталога */
+@media (max-width: 768px) {
+    .catalog {
+        grid-template-columns: 1fr;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .sort-filter-controls {
+        justify-content: space-between;
+    }
+}
