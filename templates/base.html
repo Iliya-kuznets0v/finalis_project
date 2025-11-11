@@ -14,6 +14,9 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Включаем десктопный хедер -->
+    {% include 'includes/desktop_header.html' %}
+
     <!-- Мобильный хедер -->
     <header class="mobile-header">
         <div class="container">
@@ -24,8 +27,12 @@
                 </div>
 
                 <div class="logo">
-                    <img src="/static/images/logo.png" alt="Finalis" class="logo-img" onerror="this.style.display='none'; this.nextSibling.style.display='block'">
-                    <span style="display: none;">Finalis</span>
+                    <a href="{% url 'home' %}" style="display: flex; align-items: center; gap: 5px; text-decoration: none; color: #2c3e50;">
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                            F
+                        </div>
+                        <span style="font-weight: bold;">Finalis</span>
+                    </a>
                 </div>
 
                 <div class="header-actions">
@@ -61,7 +68,7 @@
         {% endblock %}
     </div>
 
-    <!-- Нижнее меню -->
+    <!-- Нижнее меню (только для мобильных) -->
     <nav class="bottom-nav">
         <ul class="nav-items">
             <li class="nav-item">
@@ -76,21 +83,22 @@
                     Каталог
                 </a>
             </li>
-                <li class="nav-item">
-        <a href="{% url 'cart' %}" class="nav-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
-            <i class="bi bi-cart3"></i>
-            Корзина
-            {% if cart_items_count > 0 %}
-            <span class="cart-counter" style="background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; position: absolute; top: -5px; right: -5px;">
-                {{ cart_items_count }}
-            </span>
-            {% endif %}
-        </a>
-    </li>
+            <li class="nav-item">
+                <a href="{% url 'cart' %}" class="nav-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+                    <i class="bi bi-cart3"></i>
+                    Корзина
+                    {% if cart_items_count > 0 %}
+                    <span class="nav-counter">{{ cart_items_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="{% url 'favorites' %}" class="nav-link {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">
                     <i class="bi bi-heart"></i>
                     Избранное
+                    {% if favorites_count > 0 %}
+                    <span class="nav-counter">{{ favorites_count }}</span>
+                    {% endif %}
                 </a>
             </li>
             <li class="nav-item">
@@ -110,8 +118,8 @@
     </nav>
 
     <!-- Основной JavaScript -->
-    <script src="/static/js/main.js"></script>
-    <script src="/static/js/simple.js"></script
+    <script src="/static/js/simple.js"></script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

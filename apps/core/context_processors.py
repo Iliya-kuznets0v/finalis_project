@@ -1,7 +1,6 @@
 from apps.orders.models import Cart
 from apps.core.models import Favorite
 
-from apps.orders.models import Cart
 
 def cart_items_count(request):
     """Добавляет количество товаров в корзине в контекст"""
@@ -14,7 +13,16 @@ def cart_items_count(request):
     else:
         count = 0
     return {'cart_items_count': count}
+
+def favorites_count(request):
+    """Добавляет количество товаров в избранном в контекст"""
+    if request.user.is_authenticated:
+        count = Favorite.objects.filter(user=request.user).count()
+    else:
+        count = 0
+    return {'favorites_count': count}
 def favorite_ids(request):
+    """Добавляет ID избранных товаров в контекст"""
     if request.user.is_authenticated:
         favorite_ids = Favorite.objects.filter(user=request.user).values_list('product_id', flat=True)
     else:

@@ -57,6 +57,7 @@ TEMPLATES = [
                 # Кастомные контекстные процессоры
                 'apps.core.context_processors.cart_items_count',
                 'apps.core.context_processors.favorite_ids',
+                'apps.core.context_processors.favorites_count',
 
             ],
         },

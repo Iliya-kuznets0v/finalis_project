@@ -1,0 +1,271 @@
+<!-- Десктопный хедер -->
+<header class="desktop-header" style="display: none;">
+    <div class="container">
+        <div class="desktop-header-content">
+            <!-- Логотип -->
+            <div class="logo">
+                <a href="{% url 'home' %}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #2c3e50;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        F
+                    </div>
+                    <span style="font-size: 1.5rem; font-weight: bold;">Finalis</span>
+                </a>
+            </div>
+
+            <!-- Основная навигация -->
+            <nav class="desktop-nav">
+                <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    Главная
+                </a>
+                <a href="{% url 'catalog' %}" class="nav-link {% if request.resolver_match.url_name == 'catalog' %}active{% endif %}">
+                    Каталог
+                </a>
+                {% if user.is_authenticated and user.supplier_profile %}
+                <a href="{% url 'supplier_dashboard' %}" class="nav-link">
+                    Кабинет поставщика
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- Поиск -->
+            <div class="search-box">
+                <form action="{% url 'catalog' %}" method="get" style="display: flex; width: 300px;">
+                    <input type="text" name="search" placeholder="Поиск памятников..."
+                           value="{{ request.GET.search }}" class="search-input">
+                    <button type="submit" class="search-btn">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Действия пользователя -->
+            <div class="user-actions">
+                {% if user.is_authenticated %}
+                <div class="action-item">
+                    <a href="{% url 'favorites' %}" class="action-link" title="Избранное">
+                        <i class="bi bi-heart"></i>
+                        {% if favorites_count > 0 %}
+                        <span class="action-counter">{{ favorites_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+                <div class="action-item">
+                    <a href="{% url 'cart' %}" class="action-link" title="Корзина">
+                        <i class="bi bi-cart3"></i>
+                        {% if cart_items_count > 0 %}
+                        <span class="action-counter">{{ cart_items_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+                <div class="user-menu">
+                    <div class="user-avatar">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <span class="username">{{ user.username }}</span>
+                        <div class="user-dropdown">
+                            <a href="{% url 'user_profile' %}">Личный кабинет</a>
+                            <a href="{% url 'logout' %}">Выйти</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="auth-buttons">
+                    <a href="{% url 'login' %}" class="btn-secondary">Войти</a>
+                    <a href="{% url 'register' %}" class="btn-primary">Регистрация</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+.desktop-header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.desktop-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.desktop-nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.desktop-nav .nav-link {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.desktop-nav .nav-link:hover,
+.desktop-nav .nav-link.active {
+    background: #667eea;
+    color: white;
+}
+
+.search-box {
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #667eea;
+    border-radius: 8px 0 0 8px;
+    outline: none;
+}
+
+.search-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.action-item {
+    position: relative;
+}
+
+.action-link {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    text-decoration: none;
+    padding: 0.5rem;
+    display: block;
+    transition: color 0.3s ease;
+}
+
+.action-link:hover {
+    color: #667eea;
+}
+
+.action-counter {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    position: relative;
+    cursor: pointer;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.username {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 0.5rem 0;
+    min-width: 150px;
+    display: none;
+}
+
+.user-menu:hover .user-dropdown {
+    display: block;
+}
+
+.user-dropdown a {
+    display: block;
+    padding: 0.8rem 1rem;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.user-dropdown a:hover {
+    background: #f8f9fa;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+    .desktop-header {
+        display: block !important;
+    }
+    .mobile-header {
+        display: none !important;
+    }
+    .bottom-nav {
+        display: none !important;
+    }
+    body {
+        padding-bottom: 0 !important;
+    }
+}
+</style>

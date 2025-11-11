@@ -15,37 +15,40 @@
     <div class="container">
         <div class="auth-form-container">
             <form method="post" class="auth-form">
-                {% csrf_token %}
-                
-                {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+    {% csrf_token %}
 
-                <div class="form-group">
-                    <label for="username">Имя пользователя</label>
-                    <input type="text" id="username" name="username" class="form-input" required>
-                </div>
+    <!-- Добавляем скрытое поле next -->
+    <input type="hidden" name="next" value="{{ request.GET.next }}">
 
-                <div class="form-group">
-                    <label for="password">Пароль</label>
-                    <input type="password" id="password" name="password" class="form-input" required>
-                </div>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-                <button type="submit" class="btn-primary btn-full">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    Войти
-                </button>
+    <div class="form-group">
+        <label for="username">Имя пользователя</label>
+        <input type="text" id="username" name="username" class="form-input" required>
+    </div>
 
-                <div class="auth-links">
-                    <p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
-                </div>
-            </form>
+    <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" class="form-input" required>
+    </div>
+
+    <button type="submit" class="btn-primary btn-full">
+        <i class="bi bi-box-arrow-in-right"></i>
+        Войти
+    </button>
+
+    <div class="auth-links">
+        <p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+    </div>
+</form>
 
             <!-- Тестовые пользователи -->
             <div class="test-users">

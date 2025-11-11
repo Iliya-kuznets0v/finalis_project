@@ -14,6 +14,46 @@ body {
     padding-bottom: 70px; /* Для нижнего меню */
 }
 
+/* Счетчики для мобильного меню */
+.nav-counter {
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-weight: bold;
+}
+
+.nav-item {
+    position: relative;
+}
+
+/* Адаптивность для десктопного меню */
+@media (min-width: 1024px) {
+    .mobile-header {
+        display: none;
+    }
+    .bottom-nav {
+        display: none;
+    }
+    body {
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 1023px) {
+    .desktop-header {
+        display: none;
+    }
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;

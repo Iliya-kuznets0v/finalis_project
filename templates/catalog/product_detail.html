@@ -342,6 +342,7 @@
                 </div>
 
                 <!-- В секции product-actions обновляем кнопки -->
+<!-- В секции product-actions заменяем на формы -->
 <div class="product-actions">
     {% if product.in_stock %}
     <form action="{% url 'add_to_cart' product.id %}" method="post" style="flex: 1;">
@@ -358,7 +359,7 @@
     </button>
     {% endif %}
 
-    <button class="btn-favorite" onclick="toggleFavorite({{ product.id }}, this)">
+    <button class="btn-favorite favorite-btn">
         <i class="bi bi-heart"></i>
     </button>
 </div>

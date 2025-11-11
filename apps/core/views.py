@@ -13,44 +13,52 @@ from apps.reviews.models import Review
 User = get_user_model()
 
 
-
-
 @login_required
 def add_to_cart(request, product_id):
     """Добавление товара в корзину"""
-    product = get_object_or_404(Product, id=product_id, is_active=True, in_stock=True)
+    try:
+        product = Product.objects.get(id=product_id, is_active=True)
 
-    # Получаем или создаем корзину пользователя
-    cart, created = Cart.objects.get_or_create(user=request.user)
+        if not product.in_stock:
+            messages.error(request, 'Этот товар временно отсутствует в наличии')
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-    # Проверяем, есть ли уже этот товар в корзине
-    cart_item, item_created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product,
-        defaults={'quantity': 1}
-    )
+        # Получаем или создаем корзину пользователя
+        cart, created = Cart.objects.get_or_create(user=request.user)
 
-    if not item_created:
-        # Если товар уже есть в корзине, увеличиваем количество
-        cart_item.quantity += 1
-        cart_item.save()
+        # Проверяем, есть ли уже этот товар в корзине
+        cart_item, item_created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            defaults={'quantity': 1}
+        )
 
-    messages.success(request, f'Товар "{product.name}" добавлен в корзину')
+        if not item_created:
+            # Если товар уже есть в корзине, увеличиваем количество
+            cart_item.quantity += 1
+            cart_item.save()
+            messages.success(request, f'Количество товара "{product.name}" увеличено')
+        else:
+            messages.success(request, f'Товар "{product.name}" добавлен в корзину')
+
+    except Product.DoesNotExist:
+        messages.error(request, 'Товар не найден')
 
     # Возвращаем на предыдущую страницу
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-
 @login_required
 def remove_from_cart(request, item_id):
     """Удаление товара из корзины"""
-    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-    product_name = cart_item.product.name
-    cart_item.delete()
+    try:
+        cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        product_name = cart_item.product.name
+        cart_item.delete()
+        messages.success(request, f'Товар "{product_name}" удален из корзины')
+    except CartItem.DoesNotExist:
+        messages.error(request, 'Товар не найден в корзине')
 
-    messages.success(request, f'Товар "{product_name}" удален из корзины')
     return redirect('cart')
-
 
 @login_required
 def update_cart_quantity(request, item_id):
@@ -211,6 +219,39 @@ def favorites(request):
 
 
 @login_required
+def add_to_favorites(request, product_id):
+    """Добавление товара в избранное"""
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+
+    # Проверяем, есть ли уже в избранном
+    favorite, created = Favorite.objects.get_or_create(
+        user=request.user,
+        product=product
+    )
+
+    if created:
+        messages.success(request, f'Товар "{product.name}" добавлен в избранное')
+    else:
+        messages.info(request, f'Товар "{product.name}" уже в избранном')
+
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+@login_required
+def remove_from_favorites(request, product_id):
+    """Удаление товара из избранного"""
+    product = get_object_or_404(Product, id=product_id)
+
+    try:
+        favorite = Favorite.objects.get(user=request.user, product=product)
+        favorite.delete()
+        messages.success(request, f'Товар "{product.name}" удален из избранного')
+    except Favorite.DoesNotExist:
+        messages.error(request, 'Товар не найден в избранном')
+
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+@login_required
 def cart(request):
     """Страница корзины"""
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -228,8 +269,10 @@ def cart(request):
         'title': 'Корзина'
     }
     return render(request, 'orders/cart.html', context)
+
+
 def login_view(request):
-    """Упрощенный вход"""
+    """Упрощенный вход с перенаправлением"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -238,13 +281,22 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Добро пожаловать, {user.username}!')
-            return redirect('home')
+
+            # Перенаправляем на следующую страницу или на главную
+            next_url = request.GET.get('next', 'home')
+            return redirect(next_url)
         else:
             messages.error(request, 'Неверное имя пользователя или пароль')
 
     return render(request, 'registration/login.html')
 
 
+def logout_view(request):
+    """Выход"""
+    from django.contrib.auth import logout
+    logout(request)
+    messages.success(request, 'Вы успешно вышли из системы')
+    return redirect('home')
 def register_view(request):
     """Упрощенная регистрация"""
     if request.method == 'POST':
@@ -275,8 +327,22 @@ def register_view(request):
     return render(request, 'registration/register.html')
 
 
-def logout_view(request):
-    """Выход"""
-    logout(request)
-    messages.success(request, 'Вы успешно вышли из системы')
-    return redirect('home')
+def debug_cart(request):
+    """Отладочная страница для проверки корзины"""
+    if request.user.is_authenticated:
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_items = cart.items.all()
+            context = {
+                'cart': cart,
+                'cart_items': cart_items,
+                'total': sum(item.total_price for item in cart_items)
+            }
+        except Cart.DoesNotExist:
+            context = {'cart': None, 'cart_items': [], 'total': 0}
+    else:
+        context = {'cart': None, 'cart_items': [], 'total': 0}
+
+    return render(request, 'core/debug_cart.html', context)
+
+

@@ -21,6 +21,8 @@ urlpatterns = [
     path('profile/', core_views.user_profile, name='user_profile'),
     path('favorites/', core_views.favorites, name='favorites'),
     path('cart/', core_views.cart, name='cart'),
+    path('favorites/add/<int:product_id>/', core_views.add_to_favorites, name='add_to_favorites'),
+    path('favorites/remove/<int:product_id>/', core_views.remove_from_favorites, name='remove_from_favorites'),
 
     # Поставщики
     path('supplier/', include('apps.suppliers.urls')),
@@ -29,13 +31,19 @@ urlpatterns = [
     path('cart/remove/<int:item_id>/', core_views.remove_from_cart, name='remove_from_cart'),
     path('cart/update/<int:item_id>/', core_views.update_cart_quantity, name='update_cart_quantity'),
     # Временные API endpoints
-    path('api/cart/items/', core_views.api_add_to_cart, name='api_add_to_cart'),
-    path('api/cart/items/<int:item_id>/', core_views.api_remove_from_cart, name='api_remove_from_cart'),
-    path('api/favorites/', core_views.api_add_to_favorites, name='api_add_to_favorites'),
-    path('api/favorites/<int:product_id>/', core_views.api_remove_from_favorites, name='api_remove_from_favorites'),
 
+    #path('api/cart/items/', core_views.api_add_to_cart, name='api_add_to_cart'),
+    #path('api/cart/items/<int:item_id>/', core_views.api_remove_from_cart, name='api_remove_from_cart'),
+    #path('api/favorites/', core_views.api_add_to_favorites, name='api_add_to_favorites'),
+    #path('api/favorites/<int:product_id>/', core_views.api_remove_from_favorites, name='api_remove_from_favorites'),
+    #path('debug/cart/', core_views.debug_cart, name='debug_cart'),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Добавляем настройки для перенаправления
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
