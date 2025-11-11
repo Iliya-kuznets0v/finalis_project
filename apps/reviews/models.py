@@ -19,14 +19,12 @@ class Review(models.Model):
     rating = models.IntegerField(choices=RATING_CHOICES, validators=[MinValueValidator(1), MaxValueValidator(5)])
     title = models.CharField(max_length=200)
     text = models.TextField()
-    is_verified = models.BooleanField(default=False)  # Покупка подтверждена
+    is_verified = models.BooleanField(default=False)
     is_moderated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ['author', 'product']
-        ordering = ['-created_at']
 
     def __str__(self):
         return f"Review by {self.author.username} for {self.product.name}"

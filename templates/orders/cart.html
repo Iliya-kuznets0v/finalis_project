@@ -9,7 +9,6 @@
 
 {% block content %}
 <div class="cart-page">
-    <!-- Hero Section -->
     <section class="hero-section">
         <div class="container">
             <h1 class="hero-title">Корзина</h1>
@@ -54,13 +53,18 @@
 
                         <div class="item-controls">
                             <div class="quantity-controls">
-                                <button class="quantity-btn minus" data-action="decrease">
-                                    <i class="bi bi-dash"></i>
-                                </button>
-                                <input type="number" class="quantity-input" value="{{ item.quantity }}" min="1" max="10" readonly>
-                                <button class="quantity-btn plus" data-action="increase">
-                                    <i class="bi bi-plus"></i>
-                                </button>
+                                <form action="{% url 'update_cart_quantity' item.id %}" method="post" class="quantity-form">
+                                    {% csrf_token %}
+                                    <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}"
+                                            class="quantity-btn minus" {% if item.quantity <= 1 %}disabled{% endif %}>
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                    <span class="quantity-display">{{ item.quantity }}</span>
+                                    <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}"
+                                            class="quantity-btn plus">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </form>
                             </div>
 
                             <div class="item-price">
@@ -68,9 +72,12 @@
                                 <span class="total">× {{ item.quantity }} = {{ item.total_price }} ₽</span>
                             </div>
 
-                            <button class="remove-item" data-item-id="{{ item.id }}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <form action="{% url 'remove_from_cart' item.id %}" method="post" class="remove-form">
+                                {% csrf_token %}
+                                <button type="submit" class="remove-item">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
@@ -104,7 +111,7 @@
                             <span class="final-price">{{ final_price }} ₽</span>
                         </div>
 
-                        <button class="checkout-btn" id="checkoutBtn">
+                        <button class="checkout-btn" onclick="showNotification('Функция оформления заказа в разработке', 'info')">
                             <i class="bi bi-lock-fill"></i>
                             Перейти к оформлению
                         </button>
@@ -141,8 +148,4 @@
     </div>
     {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="/static/js/cart.js"></script>
 {% endblock %}

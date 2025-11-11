@@ -76,17 +76,17 @@
                     Каталог
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="{% url 'cart' %}" class="nav-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
-                    <i class="bi bi-cart3"></i>
-                    Корзина
-                    {% if cart_items_count %}
-                    <span class="cart-counter" style="background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; position: absolute; top: -5px; right: -5px;">
-                        {{ cart_items_count }}
-                    </span>
-                    {% endif %}
-                </a>
-            </li>
+                <li class="nav-item">
+        <a href="{% url 'cart' %}" class="nav-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+            <i class="bi bi-cart3"></i>
+            Корзина
+            {% if cart_items_count > 0 %}
+            <span class="cart-counter" style="background: #e74c3c; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; position: absolute; top: -5px; right: -5px;">
+                {{ cart_items_count }}
+            </span>
+            {% endif %}
+        </a>
+    </li>
             <li class="nav-item">
                 <a href="{% url 'favorites' %}" class="nav-link {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">
                     <i class="bi bi-heart"></i>
@@ -111,7 +111,7 @@
 
     <!-- Основной JavaScript -->
     <script src="/static/js/main.js"></script>
-
+    <script src="/static/js/simple.js"></script
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,718 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Кабинет поставщика - Finalis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/supplier.css">
+{% endblock %}
+
+{% block content %}
+<div class="supplier-dashboard">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Кабинет поставщика</h1>
+            <p class="hero-subtitle">Управление вашими товарами и заказами</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="dashboard-layout">
+            <!-- Боковое меню -->
+            <aside class="supplier-sidebar">
+                <div class="supplier-card">
+                    <div class="supplier-logo">
+                        {% if supplier.logo %}
+                            <img src="{{ supplier.logo.url }}" alt="{{ supplier.company_name }}">
+                        {% else %}
+                            <div class="logo-placeholder">
+                                <i class="bi bi-shop"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="supplier-info">
+                        <h3>{{ supplier.company_name }}</h3>
+                        <p class="supplier-rating">
+                            <i class="bi bi-star-fill"></i>
+                            {{ supplier.rating|default:"0.0" }}
+                            <span class="reviews-count">({{ supplier.reviews.count }})</span>
+                        </p>
+                        {% if supplier.is_verified %}
+                            <span class="verified-badge">Проверен</span>
+                        {% else %}
+                            <span class="unverified-badge">На проверке</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a href="#overview" class="nav-item active" data-tab="overview">
+                        <i class="bi bi-speedometer2"></i>
+                        Обзор
+                    </a>
+                    <a href="#products" class="nav-item" data-tab="products">
+                        <i class="bi bi-box"></i>
+                        Товары
+                        <span class="nav-badge">{{ products_count }}</span>
+                    </a>
+                    <a href="#orders" class="nav-item" data-tab="orders">
+                        <i class="bi bi-bag"></i>
+                        Заказы
+                        <span class="nav-badge">{{ orders_count }}</span>
+                    </a>
+                    <a href="#reviews" class="nav-item" data-tab="reviews">
+                        <i class="bi bi-chat"></i>
+                        Отзывы
+                        <span class="nav-badge">{{ reviews_count }}</span>
+                    </a>
+                    <a href="#statistics" class="nav-item" data-tab="statistics">
+                        <i class="bi bi-graph-up"></i>
+                        Статистика
+                    </a>
+                    <a href="#settings" class="nav-item" data-tab="settings">
+                        <i class="bi bi-gear"></i>
+                        Настройки
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Основной контент -->
+            <main class="dashboard-content">
+                <!-- Вкладка обзора -->
+                <div class="tab-content active" id="overview-tab">
+                    <div class="tab-header">
+                        <h2>Обзор деятельности</h2>
+                        <div class="period-selector">
+                            <select id="periodSelect">
+                                <option value="week">За неделю</option>
+                                <option value="month" selected>За месяц</option>
+                                <option value="quarter">За квартал</option>
+                                <option value="year">За год</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Статистика -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon revenue">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ total_revenue }} ₽</h3>
+                                <p>Общий доход</p>
+                                <span class="stat-change positive">+12%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon orders">
+                                <i class="bi bi-bag"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ total_orders }}</h3>
+                                <p>Всего заказов</p>
+                                <span class="stat-change positive">+8%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon products">
+                                <i class="bi bi-box"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ active_products }}</h3>
+                                <p>Активных товаров</p>
+                                <span class="stat-change positive">+5%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon rating">
+                                <i class="bi bi-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ supplier.rating|default:"0.0" }}</h3>
+                                <p>Рейтинг</p>
+                                <span class="stat-change positive">+0.2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Недавние заказы -->
+                    <div class="recent-section">
+                        <div class="section-header">
+                            <h3>Недавние заказы</h3>
+                            <a href="#orders" class="view-all-link">Все заказы</a>
+                        </div>
+                        
+                        {% if recent_orders %}
+                        <div class="orders-table">
+                            {% for order in recent_orders %}
+                            <div class="order-row">
+                                <div class="order-id">#{{ order.id }}</div>
+                                <div class="order-customer">{{ order.customer.username }}</div>
+                                <div class="order-date">{{ order.created_at|date:"d.m.Y" }}</div>
+                                <div class="order-amount">{{ order.total_amount }} ₽</div>
+                                <div class="order-status">
+                                    <span class="status-badge status-{{ order.status }}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn-secondary" onclick="viewOrder({{ order.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <p>Заказов пока нет</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Популярные товары -->
+                    <div class="popular-section">
+                        <div class="section-header">
+                            <h3>Популярные товары</h3>
+                            <a href="#products" class="view-all-link">Все товары</a>
+                        </div>
+                        
+                        {% if popular_products %}
+                        <div class="products-grid">
+                            {% for product in popular_products %}
+                            <div class="product-card">
+                                <div class="product-image">
+                                    {% if product.images.first %}
+                                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        <div class="no-image">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="product-info">
+                                    <h4>{{ product.name }}</h4>
+                                    <p class="product-price">{{ product.final_price }} ₽</p>
+                                    <div class="product-stats">
+                                        <span class="stat">Продано: {{ product.total_orders }}</span>
+                                        <span class="stat">Рейтинг: {{ product.rating }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <p>Товаров пока нет</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Вкладка товаров -->
+                <div class="tab-content" id="products-tab">
+                    <div class="tab-header">
+                        <h2>Управление товарами</h2>
+                        <button class="btn-primary" id="addProductBtn">
+                            <i class="bi bi-plus"></i>
+                            Добавить товар
+                        </button>
+                    </div>
+
+                    <!-- Фильтры товаров -->
+                    <div class="filters-bar">
+                        <div class="search-box">
+                            <input type="text" placeholder="Поиск товаров..." id="productSearch">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <select id="statusFilter">
+                            <option value="">Все статусы</option>
+                            <option value="active">Активные</option>
+                            <option value="inactive">Неактивные</option>
+                            <option value="out_of_stock">Нет в наличии</option>
+                        </select>
+                        <select id="categoryFilter">
+                            <option value="">Все категории</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Таблица товаров -->
+                    <div class="products-table">
+                        <div class="table-header">
+                            <div class="col-name">Товар</div>
+                            <div class="col-category">Категория</div>
+                            <div class="col-price">Цена</div>
+                            <div class="col-stock">Наличие</div>
+                            <div class="col-orders">Заказы</div>
+                            <div class="col-rating">Рейтинг</div>
+                            <div class="col-status">Статус</div>
+                            <div class="col-actions">Действия</div>
+                        </div>
+                        
+                        <div class="table-body">
+                            {% for product in products %}
+                            <div class="table-row" data-product-id="{{ product.id }}">
+                                <div class="col-name">
+                                    <div class="product-cell">
+                                        <div class="product-image">
+                                            {% if product.images.first %}
+                                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                                            {% else %}
+                                                <div class="no-image">
+                                                    <i class="bi bi-image"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="product-details">
+                                            <h4>{{ product.name }}</h4>
+                                            <p class="product-sku">ID: {{ product.id }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-category">
+                                    {{ product.category.name|default:"-" }}
+                                </div>
+                                <div class="col-price">
+                                    {{ product.final_price }} ₽
+                                </div>
+                                <div class="col-stock">
+                                    {% if product.in_stock %}
+                                        <span class="stock-badge in-stock">В наличии</span>
+                                    {% else %}
+                                        <span class="stock-badge out-of-stock">Нет в наличии</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-orders">
+                                    {{ product.total_orders }}
+                                </div>
+                                <div class="col-rating">
+                                    <div class="rating-display">
+                                        <i class="bi bi-star-fill"></i>
+                                        {{ product.rating|default:"0.0" }}
+                                    </div>
+                                </div>
+                                <div class="col-status">
+                                    {% if product.is_active %}
+                                        <span class="status-badge active">Активен</span>
+                                    {% else %}
+                                        <span class="status-badge inactive">Неактивен</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-actions">
+                                    <div class="action-buttons">
+                                        <button class="btn-icon edit-product" data-product-id="{{ product.id }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn-icon toggle-status" data-product-id="{{ product.id }}" 
+                                                data-status="{{ product.is_active|yesno:'active,inactive' }}">
+                                            <i class="bi bi-{% if product.is_active %}pause{% else %}play{% endif %}"></i>
+                                        </button>
+                                        <button class="btn-icon delete-product" data-product-id="{{ product.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="empty-row">
+                                <div class="empty-state">
+                                    <i class="bi bi-box"></i>
+                                    <p>Товаров пока нет</p>
+                                    <button class="btn-primary" id="addFirstProductBtn">
+                                        Добавить первый товар
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if products.paginator.num_pages > 1 %}
+                    <div class="pagination">
+                        {% if products.has_previous %}
+                            <a href="?page={{ products.previous_page_number }}#products" class="page-link">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in products.paginator.page_range %}
+                            {% if products.number == num %}
+                                <span class="page-link active">{{ num }}</span>
+                            {% else %}
+                                <a href="?page={{ num }}#products" class="page-link">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if products.has_next %}
+                            <a href="?page={{ products.next_page_number }}#products" class="page-link">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Вкладка заказов -->
+                <div class="tab-content" id="orders-tab">
+                    <div class="tab-header">
+                        <h2>Управление заказами</h2>
+                        <div class="order-filters">
+                            <select id="orderStatusFilter">
+                                <option value="">Все статусы</option>
+                                {% for status_value, status_name in order_statuses %}
+                                    <option value="{{ status_value }}">{{ status_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Статистика заказов -->
+                    <div class="orders-stats">
+                        {% for stat in order_stats %}
+                        <div class="order-stat">
+                            <div class="stat-count">{{ stat.count }}</div>
+                            <div class="stat-label">{{ stat.label }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Список заказов -->
+                    <div class="orders-table detailed">
+                        <div class="table-header">
+                            <div class="col-order-id">№ Заказа</div>
+                            <div class="col-customer">Покупатель</div>
+                            <div class="col-date">Дата</div>
+                            <div class="col-items">Товары</div>
+                            <div class="col-amount">Сумма</div>
+                            <div class="col-status">Статус</div>
+                            <div class="col-actions">Действия</div>
+                        </div>
+                        
+                        <div class="table-body">
+                            {% for order in orders %}
+                            <div class="table-row order-row" data-order-id="{{ order.id }}">
+                                <div class="col-order-id">#{{ order.id }}</div>
+                                <div class="col-customer">
+                                    <div class="customer-info">
+                                        <strong>{{ order.customer.username }}</strong>
+                                        <span>{{ order.customer.email }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-date">
+                                    {{ order.created_at|date:"d.m.Y H:i" }}
+                                </div>
+                                <div class="col-items">
+                                    <div class="items-preview">
+                                        {% for item in order.items.all|slice:":2" %}
+                                            <span class="item-name">{{ item.product.name }}</span>
+                                        {% endfor %}
+                                        {% if order.items.count > 2 %}
+                                            <span class="items-more">+{{ order.items.count|add:"-2" }} ещё</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-amount">
+                                    {{ order.total_amount }} ₽
+                                </div>
+                                <div class="col-status">
+                                    <select class="status-select" data-order-id="{{ order.id }}">
+                                        {% for status_value, status_name in order_statuses %}
+                                            <option value="{{ status_value }}" 
+                                                    {% if order.status == status_value %}selected{% endif %}>
+                                                {{ status_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-actions">
+                                    <div class="action-buttons">
+                                        <button class="btn-icon view-order" data-order-id="{{ order.id }}">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn-icon contact-customer" data-order-id="{{ order.id }}">
+                                            <i class="bi bi-chat"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="empty-row">
+                                <div class="empty-state">
+                                    <i class="bi bi-bag"></i>
+                                    <p>Заказов пока нет</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка отзывов -->
+                <div class="tab-content" id="reviews-tab">
+                    <div class="tab-header">
+                        <h2>Отзывы покупателей</h2>
+                        <div class="reviews-summary">
+                            <div class="average-rating">
+                                <div class="rating-value">{{ supplier.rating|default:"0.0" }}</div>
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        <i class="bi bi-star{% if forloop.counter <= average_rating %}-fill{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <div class="rating-count">{{ reviews_count }} отзывов</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Статистика оценок -->
+                    <div class="ratings-distribution">
+                        {% for rating in rating_distribution %}
+                        <div class="rating-bar">
+                            <span class="rating-label">{{ rating.stars }} звезд</span>
+                            <div class="rating-progress">
+                                <div class="progress-bar" style="width: {{ rating.percentage }}%"></div>
+                            </div>
+                            <span class="rating-count">{{ rating.count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Список отзывов -->
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <h4>{{ review.author.username }}</h4>
+                                    <div class="review-meta">
+                                        <div class="rating-stars">
+                                            {% for i in "12345" %}
+                                                <i class="bi bi-star{% if forloop.counter <= review.rating %}-fill{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="review-date">{{ review.created_at|date:"d.m.Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="review-product">
+                                    <strong>{{ review.product.name }}</strong>
+                                </div>
+                            </div>
+                            
+                            <h5 class="review-title">{{ review.title }}</h5>
+                            <p class="review-text">{{ review.text }}</p>
+                            
+                            {% if review.images.all %}
+                            <div class="review-images">
+                                {% for image in review.images.all %}
+                                <img src="{{ image.image.url }}" alt="Фото отзыва">
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="review-actions">
+                                {% if review.is_moderated %}
+                                    <span class="moderation-status approved">Одобрен</span>
+                                {% else %}
+                                    <span class="moderation-status pending">На модерации</span>
+                                {% endif %}
+                                
+                                <div class="action-buttons">
+                                    {% if not review.is_moderated %}
+                                    <button class="btn-secondary approve-review" data-review-id="{{ review.id }}">
+                                        Одобрить
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn-secondary reply-review" data-review-id="{{ review.id }}">
+                                        Ответить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="bi bi-chat"></i>
+                            <p>Отзывов пока нет</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Вкладка статистики -->
+                <div class="tab-content" id="statistics-tab">
+                    <div class="tab-header">
+                        <h2>Статистика продаж</h2>
+                        <div class="period-selector">
+                            <select id="statsPeriod">
+                                <option value="7">7 дней</option>
+                                <option value="30" selected>30 дней</option>
+                                <option value="90">90 дней</option>
+                                <option value="365">Год</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Графики -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>Продажи по дням</h3>
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <h3>Популярные категории</h3>
+                            <div class="chart-container">
+                                <canvas id="categoriesChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <h3>Статусы заказов</h3>
+                            <div class="chart-container">
+                                <canvas id="ordersChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <h3>Доход по месяцам</h3>
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка настроек -->
+                <div class="tab-content" id="settings-tab">
+                    <div class="tab-header">
+                        <h2>Настройки поставщика</h2>
+                    </div>
+
+                    <div class="settings-sections">
+                        <!-- Основная информация -->
+                        <section class="settings-section">
+                            <h3>Основная информация</h3>
+                            <form class="settings-form" id="supplierSettingsForm">
+                                {% csrf_token %}
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Название компании</label>
+                                        <input type="text" name="company_name" value="{{ supplier.company_name }}" 
+                                               class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ИНН</label>
+                                        <input type="text" name="inn" value="{{ supplier.inn }}" 
+                                               class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Описание</label>
+                                        <textarea name="description" rows="4" class="form-input">{{ supplier.description }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Логотип</label>
+                                        <div class="file-upload">
+                                            <input type="file" name="logo" accept="image/*" class="file-input">
+                                            <div class="upload-area">
+                                                <i class="bi bi-cloud-upload"></i>
+                                                <span>Загрузить логотип</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary">Сохранить изменения</button>
+                            </form>
+                        </section>
+
+                        <!-- Зоны доставки -->
+                        <section class="settings-section">
+                            <h3>Зоны доставки</h3>
+                            <div class="delivery-settings">
+                                <div class="setting-item">
+                                    <label>Радиус доставки (км)</label>
+                                    <input type="number" name="delivery_radius" value="{{ supplier.delivery_radius_km }}" 
+                                           class="form-input" min="1" max="500">
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <label>Городы доставки</label>
+                                    <div class="cities-list">
+                                        {% for city in supplier.cities.all %}
+                                        <span class="city-tag">
+                                            {{ city.name }}
+                                            <button type="button" class="remove-city" data-city-id="{{ city.id }}">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    <button type="button" class="btn-secondary" id="addCityBtn">
+                                        <i class="bi bi-plus"></i>
+                                        Добавить город
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Настройки уведомлений -->
+                        <section class="settings-section">
+                            <h3>Уведомления</h3>
+                            <div class="notification-settings">
+                                {% for notification in notification_settings %}
+                                <div class="notification-item">
+                                    <div class="notification-info">
+                                        <h4>{{ notification.name }}</h4>
+                                        <p>{{ notification.description }}</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" {% if notification.enabled %}checked{% endif %}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления товара -->
+<div class="modal-overlay" id="productModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить товар</h3>
+            <button class="modal-close" id="closeProductModal">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="productForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <!-- Форма будет заполнена JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelProductBtn">Отмена</button>
+                <button type="submit" class="btn-primary">Сохранить товар</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/supplier.js"></script>
+{% endblock %}
